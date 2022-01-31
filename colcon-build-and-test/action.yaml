@@ -15,6 +15,10 @@ inputs:
     description: ""
     required: false
     default: ${{ github.token }}
+  test-label:
+    description: ""
+    required: false
+    default: ""
 
 runs:
   using: composite
@@ -72,10 +76,18 @@ runs:
       run: |
         . /opt/ros/${{ inputs.rosdistro }}/setup.sh
         colcon lcov-result --initial --verbose --packages-above ${{ inputs.target-packages }}
-        colcon test --event-handlers console_cohesion+ \
-          --mixin coverage-pytest \
-          --packages-above ${{ inputs.target-packages }} \
-          --return-code-on-test-failure
+        if ${{ inputs.test-label }} = "" ; then
+          colcon test --event-handlers console_cohesion+ \
+            --mixin coverage-pytest \
+            --packages-above ${{ inputs.target-packages }} \
+            --return-code-on-test-failure
+        else
+          colcon test --event-handlers console_cohesion+ \
+            --mixin coverage-pytest \
+            --packages-above ${{ inputs.target-packages }} \
+            --ctest-args -L ${{ inputs.test-label }} \
+            --return-code-on-test-failure
+        fi
         colcon lcov-result --verbose --packages-above ${{ inputs.target-packages }} || true
         colcon coveragepy-result --verbose --packages-above ${{ inputs.target-packages }} || true
       shell: bash
