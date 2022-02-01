@@ -102,7 +102,7 @@ runs:
               --initial \
               --verbose \
               --packages-above ${{ inputs.target-packages }} \
-              --lcov-base "lcov_$label"
+              --lcov-base lcov_$label
             colcon test --event-handlers console_cohesion+ \
               --mixin coverage-pytest \
               --packages-above ${{ inputs.target-packages }} \
@@ -111,20 +111,20 @@ runs:
             colcon lcov-result \
               --verbose \
               --packages-above ${{ inputs.target-packages }} \
-              --lcov-base "lcov_$label" || true
+              --lcov-base lcov_$label || true
             colcon coveragepy-result \
               --verbose \
               --packages-above ${{ inputs.target-packages }} \
-              --coveragepy-base "coveragepy_$label" || true
+              --coveragepy-base coveragepy_$label || true
 
-            coverage_files+=("lcov_$label/total_coverage.info")
-            coverage_files+=("coveragepy_$label/.coverage")
+            coverage_files+=(lcov_$label/total_coverage.info)
+            coverage_files+=(coveragepy_$label/.coverage)
           done
         fi
 
         # Join coverage file names
         IFS=, eval 'coverage_files_str="${coverage_files[*]}"'
-        echo "::set-output name=coverage-files::$(echo coverage_files_str)"
+        echo ::set-output name=coverage-files::$coverage_files_str
       shell: bash
 
     - name: Cache build artifacts
