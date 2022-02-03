@@ -60,6 +60,15 @@ runs:
         DEBIAN_FRONTEND=noninteractive rosdep install -yqq --from-paths . --ignore-src --rosdistro ${{ inputs.rosdistro }}
       shell: bash
 
+    - name: Restore build files from cache
+      id: restore-build-files
+      uses: actions/cache@v2
+      with:
+        path: |
+          ./build
+          ./install
+        key: build-${{ github.sha }}
+
     - name: Test
       id: test
       run: |
