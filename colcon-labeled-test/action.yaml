@@ -37,7 +37,7 @@ runs:
     - name: Install packages for coverage commands
       run: |
         sudo apt-get -yqq update
-        sudo apt-get -yqq install lcov
+        sudo apt-get -yqq install lcov python3-pip
         pip3 install colcon-lcov-result colcon-coveragepy-result
       shell: bash
 
