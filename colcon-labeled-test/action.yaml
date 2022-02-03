@@ -41,6 +41,13 @@ runs:
         pip3 install colcon-lcov-result colcon-coveragepy-result
       shell: bash
 
+    - name: Run rosdep install
+      run: |
+        sudo apt-get -yqq update
+        rosdep update
+        DEBIAN_FRONTEND=noninteractive rosdep install -yqq --from-paths . --ignore-src --rosdistro ${{ inputs.rosdistro }}
+      shell: bash
+
     - name: Test
       id: test
       run: |
