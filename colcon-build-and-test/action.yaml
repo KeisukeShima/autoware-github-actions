@@ -15,14 +15,6 @@ inputs:
     description: ""
     required: false
     default: ${{ github.token }}
-  test-labels:
-    description: ""
-    required: false
-    default: ""
-outputs:
-  coverage-files:
-    description: ""
-    value: ${{ steps.test.outputs.coverage-files }}
 
 runs:
   using: composite
@@ -77,62 +69,15 @@ runs:
       shell: bash
 
     - name: Test
-      id: test
       run: |
-        set -e
-
         . /opt/ros/${{ inputs.rosdistro }}/setup.sh
-
-
-        coverage_files=()
-        if [[ "${{ inputs.test-labels }}" = "" ]] ; then
-          colcon lcov-result --initial --verbose --packages-above ${{ inputs.target-packages }}
-          colcon test --event-handlers console_cohesion+ \
-            --mixin coverage-pytest \
-            --packages-above ${{ inputs.target-packages }} \
-            --return-code-on-test-failure
-          colcon lcov-result --verbose --packages-above ${{ inputs.target-packages }} || true
-          colcon coveragepy-result --verbose --packages-above ${{ inputs.target-packages }} || true
-
-          coverage_files+=("lcov/total_coverage.info")
-          coverage_files+=("coveragepy/.coverage")
-        else
-          # Split the test labels into an array
-          tmp="${{ inputs.test-labels }}"
-          IFS=, eval 'input_labels=(${tmp})'
-
-          for label in "${input_labels[@]}"; do
-            echo "Executing labeled test: $label"
-            colcon lcov-result --zero-counters \
-              --verbose \
-              --packages-above ${{ inputs.target-packages }} \
-              --lcov-base lcov_$label
-            colcon lcov-result --initial \
-              --verbose \
-              --packages-above ${{ inputs.target-packages }} \
-              --lcov-base lcov_$label
-            colcon test --event-handlers console_cohesion+ \
-              --mixin coverage-pytest \
-              --packages-above ${{ inputs.target-packages }} \
-              --ctest-args -L "$label" \
-              --return-code-on-test-failure
-            colcon lcov-result \
-              --verbose \
-              --packages-above ${{ inputs.target-packages }} \
-              --lcov-base lcov_$label || true
-            colcon coveragepy-result \
-              --verbose \
-              --packages-above ${{ inputs.target-packages }} \
-              --coveragepy-base coveragepy_$label || true
-
-            coverage_files+=(lcov_$label/total_coverage.info)
-            coverage_files+=(coveragepy_$label/.coverage)
-          done
-        fi
-
-        # Join coverage file names
-        IFS=, eval 'coverage_files_str="${coverage_files[*]}"'
-        echo ::set-output name=coverage-files::$coverage_files_str
+        colcon lcov-result --initial --verbose --packages-above ${{ inputs.target-packages }}
+        colcon test --event-handlers console_cohesion+ \
+          --mixin coverage-pytest \
+          --packages-above ${{ inputs.target-packages }} \
+          --return-code-on-test-failure
+        colcon lcov-result --verbose --packages-above ${{ inputs.target-packages }} || true
+        colcon coveragepy-result --verbose --packages-above ${{ inputs.target-packages }} || true
       shell: bash
 
     - name: Cache build artifacts

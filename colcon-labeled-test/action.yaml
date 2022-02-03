@@ -1,0 +1,89 @@
+name: colcon-labeled-test
+description: ""
+
+inputs:
+  rosdistro:
+    description: ""
+    required: true
+  target-packages:
+    description: ""
+    required: true
+  label:
+    description: ""
+    required: true
+  token:
+    description: ""
+    required: false
+    default: ${{ github.token }}
+outputs:
+  coverage-reports:
+    description: ""
+    value: ${{ steps.test.outputs.coverage-reports }}
+
+runs:
+  using: composite
+  steps:
+    - name: Show target packages
+      run: |
+        echo "target packages: ${{ inputs.target-packages }}"
+      shell: bash
+
+    - name: Set up colcon-mixin
+      run: |
+        colcon mixin add default https://raw.githubusercontent.com/colcon/colcon-mixin-repository/master/index.yaml || true
+        colcon mixin update default
+      shell: bash
+
+    - name: Install packages for coverage commands
+      run: |
+        sudo apt-get -yqq update
+        sudo apt-get -yqq install lcov
+        pip3 install colcon-lcov-result colcon-coveragepy-result
+      shell: bash
+
+    - name: Test
+      id: test
+      run: |
+        set -e
+        . /opt/ros/${{ inputs.rosdistro }}/setup.sh
+
+        colcon lcov-result --zero-counters \
+          --verbose \
+          --packages-above ${{ inputs.target-packages }} \
+          --lcov-base lcov_${{ inputs.label }}
+
+        colcon lcov-result --initial \
+          --verbose \
+          --packages-above ${{ inputs.target-packages }} \
+          --lcov-base lcov_${{ inputs.label }}
+
+        colcon test --event-handlers console_cohesion+ \
+          --mixin coverage-pytest \
+          --packages-above ${{ inputs.target-packages }} \
+          --ctest-args -L "${{ inputs.label }}" \
+          --return-code-on-test-failure
+
+        colcon lcov-result \
+          --verbose \
+          --packages-above ${{ inputs.target-packages }} \
+          --lcov-base lcov_${{ inputs.label }} || true
+
+        colcon coveragepy-result \
+          --verbose \
+          --packages-above ${{ inputs.target-packages }} \
+          --coveragepy-base coveragepy_${{ inputs.label }} || true
+
+        coverage_files=()
+        lcov_coverage_file=lcov_${{ inputs.label }}/total_coverage.info
+        if [[ -f $lcov_coverage_file ]]; then
+          coverage_files+=("$lcov_coverage_file")
+        fi
+
+        coveragepy_coverage_file=coveragepy_${{ inputs.label }}/.coverage
+        if [[ -f $coveragepy_coverage_file ]]; then
+        coverage_files+=("$coveragepy_coverage_file")
+
+        # Join coverage file names
+        IFS=, eval 'coverage_files_str="${coverage_files[*]}"'
+        echo ::set-output name=coverage-reports::$coverage_files_str
+      shell: bash
