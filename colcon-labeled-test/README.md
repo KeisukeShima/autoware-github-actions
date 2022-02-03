@@ -10,10 +10,9 @@ jobs:
   labeled-test:
     runs-on: ubuntu-latest
     container: ros:galactic
-    matrix:
-      label: |
-        gtest
-        smoke_test
+    strategy:
+      matrix:
+        label: [gtest, smoke_test]
     steps:
       - name: Check out repository
         uses: actions/checkout@v2

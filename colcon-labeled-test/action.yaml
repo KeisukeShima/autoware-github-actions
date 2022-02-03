@@ -82,6 +82,7 @@ runs:
         coveragepy_coverage_file=coveragepy_${{ inputs.label }}/.coverage
         if [[ -f $coveragepy_coverage_file ]]; then
         coverage_files+=("$coveragepy_coverage_file")
+        fi
 
         # Join coverage file names
         IFS=, eval 'coverage_files_str="${coverage_files[*]}"'
