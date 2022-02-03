@@ -103,8 +103,11 @@ runs:
 
           for label in "${input_labels[@]}"; do
             echo "Executing labeled test: $label"
-            colcon lcov-result \
-              --initial \
+            colcon lcov-result --zero-counters \
+              --verbose \
+              --packages-above ${{ inputs.target-packages }} \
+              --lcov-base lcov_$label
+            colcon lcov-result --initial \
               --verbose \
               --packages-above ${{ inputs.target-packages }} \
               --lcov-base lcov_$label
