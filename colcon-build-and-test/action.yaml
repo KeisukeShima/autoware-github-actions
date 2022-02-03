@@ -79,10 +79,13 @@ runs:
     - name: Test
       id: test
       run: |
+        set -e
+
         . /opt/ros/${{ inputs.rosdistro }}/setup.sh
 
+
         coverage_files=()
-        if "${{ inputs.test-labels }}" = "" ; then
+        if [[ "${{ inputs.test-labels }}" = "" ]] ; then
           colcon lcov-result --initial --verbose --packages-above ${{ inputs.target-packages }}
           colcon test --event-handlers console_cohesion+ \
             --mixin coverage-pytest \
@@ -95,9 +98,11 @@ runs:
           coverage_files+=("coveragepy/.coverage")
         else
           # Split the test labels into an array
-          IFS=, eval 'LABELS=(${{ inputs.test-labels }})'
+          tmp="${{ inputs.test-labels }}"
+          IFS=, eval 'input_labels=(${tmp})'
 
-          for label in "${LABELS[@]}"; do
+          for label in "${input_labels[@]}"; do
+            echo "Executing labeled test: $label"
             colcon lcov-result \
               --initial \
               --verbose \
