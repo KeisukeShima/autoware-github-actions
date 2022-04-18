@@ -49,6 +49,9 @@ function find_package_dir() {
     return 1
 }
 
+echo echo PWD from script
+echo $PWD
+
 # Find modified files from base branch
 modified_files=$(git diff --name-only "$base_branch"...HEAD)
 

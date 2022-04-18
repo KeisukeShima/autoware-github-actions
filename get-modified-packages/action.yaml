@@ -9,6 +9,11 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: echo PWD in get-modified-packages
+      run: |
+        echo $PWD
+      shell: bash
+
     - name: Get modified packages
       id: get-modified-packages
       run: |
