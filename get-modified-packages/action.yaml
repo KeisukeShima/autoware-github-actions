@@ -14,6 +14,10 @@ runs:
         echo $PWD
       shell: bash
 
+    - name: work around permission issue
+      run: git config --global --add safe.directory $GITHUB_WORKSPACE
+      shell: bash
+
     - name: Get modified packages
       id: get-modified-packages
       run: |
