@@ -92,18 +92,15 @@ runs:
         . /opt/ros/${{ inputs.rosdistro }}/setup.sh
 
         colcon lcov-result --zero-counters \
-          --verbose \
           --packages-above ${{ inputs.target-packages }}
 
         colcon lcov-result --initial \
-          --verbose \
           --packages-above ${{ inputs.target-packages }}
 
         colcon test --event-handlers console_cohesion+ \
           --mixin coverage-pytest \
           --packages-above ${{ inputs.target-packages }} \
-          --ctest-args -L "${{ inputs.label-regex }}" \
-          --executor sequential \
+          --ctest-args -L "${{ inputs.label-regex }}"
 
         colcon lcov-result \
           --verbose \
